@@ -10,6 +10,10 @@
 
 [English](./README.md) | 简体中文
 
+## 与原仓库不同的部分
+
+- 增加了 `outputType` 属性
+
 ## 示例
 
 [![Edit antd-img-crop](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/antd-img-crop-4qoom5p9x4?fontsize=14&hidenavigation=1&theme=dark)
@@ -17,9 +21,9 @@
 ## 安装
 
 ```sh
-yarn add antd-img-crop
+yarn add antd-img-crop@git://github.com/tangbzai/antd-img-crop.git#Custom
 
-# npm install antd-img-crop
+# npm install antd-img-crop@git://github.com/tangbzai/antd-img-crop.git#Custom
 ```
 
 ## 使用
