@@ -13,6 +13,7 @@
 ## 与原仓库不同的部分
 
 - 增加了 `outputType` 属性
+- `beforeCrop` 返回 `false` 同样会调用 Upload 组件的 `beforeUpload`
 
 ## 示例
 

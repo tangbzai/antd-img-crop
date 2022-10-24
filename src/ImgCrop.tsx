@@ -67,6 +67,42 @@ const ImgCrop = forwardRef<Cropper, ImgCropProps>((props, ref) => {
   const resolveRef = useRef<ImgCropProps['onModalOk']>();
   const rejectRef = useRef<(err: Error) => void>();
 
+  const callBeforeUpload = (
+    file: RcFile,
+    fileList: RcFile[]
+  ): Promise<void | boolean | string | Blob | File> => {
+    return new Promise(async (resolve, reject) => {
+      if (!beforeUploadRef.current) {
+        return resolve(file);
+      }
+
+      const result = await beforeUploadRef.current(file, fileList);
+
+      if (result === true) {
+        return resolve(file);
+      }
+
+      if (result === false) {
+        return reject(new Error('beforeUpload return false'));
+      }
+
+      delete file[AntUpload.LIST_IGNORE];
+      if (result === AntUpload.LIST_IGNORE) {
+        Object.defineProperty(file, AntUpload.LIST_IGNORE, {
+          value: true,
+          configurable: true,
+        });
+        return rejectRef.current(
+          new Error('beforeUpload return LIST_IGNORE')
+        );
+      }
+
+      if (typeof result === 'object' && result !== null) {
+        return resolve(result);
+      }
+    });
+  };
+
   const uploadComponent = useMemo(() => {
     const upload = Array.isArray(children) ? children[0] : children;
     const { beforeUpload, accept, ...restUploadProps } = upload.props;
@@ -81,9 +117,7 @@ const ImgCrop = forwardRef<Cropper, ImgCropProps>((props, ref) => {
           return new Promise(async (resolve, reject) => {
             if (cb.current.beforeCrop) {
               const shouldCrop = await cb.current.beforeCrop(file, fileList);
-              if (!shouldCrop) {
-                return reject();
-              }
+              if (!shouldCrop) return callBeforeUpload(file, fileList).then(resolve).catch(reject);
             }
 
             fileRef.current = file;
@@ -236,34 +270,7 @@ const ImgCrop = forwardRef<Cropper, ImgCropProps>((props, ref) => {
           uid,
         }) as RcFile;
 
-        if (!beforeUploadRef.current) {
-          return resolveRef.current(newFile);
-        }
-
-        const result = await beforeUploadRef.current(newFile, [newFile]);
-
-        if (result === true) {
-          return resolveRef.current(newFile);
-        }
-
-        if (result === false) {
-          return rejectRef.current(new Error('beforeUpload return false'));
-        }
-
-        delete newFile[AntUpload.LIST_IGNORE];
-        if (result === AntUpload.LIST_IGNORE) {
-          Object.defineProperty(newFile, AntUpload.LIST_IGNORE, {
-            value: true,
-            configurable: true,
-          });
-          return rejectRef.current(
-            new Error('beforeUpload return LIST_IGNORE')
-          );
-        }
-
-        if (typeof result === 'object' && result !== null) {
-          return resolveRef.current(result);
-        }
+        return callBeforeUpload(newFile, [newFile]).then(resolveRef.current).catch(rejectRef.current);
       },
       outputType || type,
       quality

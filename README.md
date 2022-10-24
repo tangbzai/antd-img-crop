@@ -13,6 +13,7 @@ English | [简体中文](./README.zh-CN.md)
 ## Different parts
 
 - add `outputType` attribute
+- `beforeCrop` return `false` also called `beforeUpload` for Upload
 
 ## Demo
 
